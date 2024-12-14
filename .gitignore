@@ -1,3 +1,4 @@
 /.venv
 /__pycache__
 /btc_price_1h.json
+prediccion_lstm.png
