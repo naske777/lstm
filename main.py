@@ -6,9 +6,10 @@ from trainer import train_model
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
 model = nn.Sequential(
-    nn.LSTM(input_size=1, hidden_size=500, num_layers=3, batch_first=True),
-    nn.Linear(500, 1)
+    nn.LSTM(input_size=1, hidden_size=400, num_layers=1, batch_first=True),
+    nn.Linear(400, 1)
 ).to(device)
 
 # Generar datos y entrenar
