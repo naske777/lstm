@@ -30,40 +30,27 @@ def plot_predictions(full_sequence, denormalized_predictions):
     plt.savefig('prediccion_lstm.png')
     plt.close()
 
-def plot_predictions_vs_real(predictions, real_values):
+def plot_predictions_vs_real(predictions, last_n=10):
     """
     Grafica la comparación entre predicciones y valores reales.
     """
+
     plt.figure(figsize=(12, 6))
     
-    # Crear el gráfico
-    plt.plot(range(len(predictions)), predictions, 'r--o', label='Predicciones', linewidth=2)
-    plt.plot(range(len(real_values)), real_values, 'b-o', label='Valores Reales', linewidth=2)
+    # Crear el gráfico para los elementos anteriores a los últimos 'last_n' en azul
+    plt.plot(range(len(predictions) - last_n), predictions[:-last_n], 'b-o', label='Predicciones (anteriores)', linewidth=2)
+    
+    # Crear el gráfico para los últimos 'last_n' elementos en rojo
+    plt.plot(range(len(predictions) - last_n, len(predictions)), predictions[-last_n:], 'r-o', label=f'Predicciones (últimos {last_n})', linewidth=2)
     
     # Personalizar el gráfico
-    plt.title('Comparación de Predicciones vs Valores Reales', fontsize=14)
+    plt.title('Comparación de Predicciones', fontsize=14)
     plt.xlabel('Índice de Predicción', fontsize=12)
     plt.ylabel('Precio BTC (USD)', fontsize=12)
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend(fontsize=10)
     
-    # Añadir etiquetas de valores
-    for i in range(len(predictions)):
-        plt.annotate(f'${predictions[i]:.2f}', 
-                    (i, predictions[i]), 
-                    textcoords="offset points", 
-                    xytext=(0,10), 
-                    ha='center',
-                    fontsize=8,
-                    color='red')
-        plt.annotate(f'${real_values[i]:.2f}', 
-                    (i, real_values[i]), 
-                    textcoords="offset points", 
-                    xytext=(0,-15), 
-                    ha='center',
-                    fontsize=8,
-                    color='blue')
-    
+
     plt.tight_layout()
     plt.savefig('predicciones_vs_real.png')
     plt.close()

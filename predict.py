@@ -18,7 +18,8 @@ normalized_predictions = []
 denormalized_predictions = []
        
 X = []
-for i in range(10):
+last_n = 10
+for i in range(72 + last_n):
     normalized_sequence, min_val, max_val = normalize_data(close_prices)
     
     sequence_length = 72  # Longitud de la secuencia (3 días de datos)
@@ -28,7 +29,7 @@ for i in range(10):
     
     
     X_train = torch.FloatTensor(X).unsqueeze(-1).to(device)
-    X_train = X_train[-24:-23]
+    X_train = X_train[-73:-72]
     if(i == 0):
         print(X_train)
     
@@ -40,5 +41,10 @@ for i in range(10):
         denormalized_pred = normalized_pred * (max_val - min_val) + min_val
         denormalized_predictions.append(denormalized_pred)
         close_prices = close_prices + [denormalized_pred]
+    # if(i == 0):
+    #     print(seq)
+    #     print(denormalized_pred)
+    
+# Mostrar resultados finales
 
-plot_predictions_vs_real(denormalized_predictions,denormalized_predictions)
+plot_predictions_vs_real(denormalized_predictions,last_n)
