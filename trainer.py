@@ -16,8 +16,7 @@ def train_model(model, X, y, min_val, max_val, X_val=None, y_val=None, epochs=10
         # Entrenamiento
         model.train()
         optimizer.zero_grad()
-        output, _ = model[0](X)
-        prediction = model[1](output[:, -1, :])
+        prediction = model(X)  # Use the updated model structure
         
         train_mse, train_mape = calculate_metrics(
             denormalize_data(y.cpu().detach().numpy(), min_val, max_val),
