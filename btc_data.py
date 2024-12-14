@@ -36,7 +36,7 @@ interval = "1h"      # Intervalo de 1 hora
 
 # Fechas de inicio y fin (último año)
 end_time = datetime.datetime.now()
-start_time = end_time - datetime.timedelta(days=365)
+start_time = end_time - datetime.timedelta(days=1095)
 
 # Obtener datos
 historical_data = fetch_historical_data(symbol, interval, start_time, end_time)
