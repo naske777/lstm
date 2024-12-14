@@ -77,5 +77,6 @@ def train_model(model, X, y, min_val, max_val, X_val=None, y_val=None, epochs=10
         best_model_state = {key: val.cpu().clone() for key, val in model.state_dict().items()}
         
     model.load_state_dict(best_model_state)
+    torch.save(model.state_dict(), 'model.pth')
     return (best_loss, train_mse, train_mape) if X_val is None else (best_loss, val_mse, val_mape)
 
