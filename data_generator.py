@@ -22,7 +22,7 @@ def generate_sequence_data(device):
     sample_data = data[-sample_size:]
     
     # Extraer solo los precios de cierre (close)
-    close_prices = [float(entry.get('close', 0)) for entry in sample_data if 'close' in entry]
+    close_prices = [float(entry.get('close', 0)) for entry in sample_data if 'close' in entry][-300:]    
     
     normalized_sequence, min_val, max_val = normalize_data(close_prices)
     
@@ -32,4 +32,25 @@ def generate_sequence_data(device):
         X.append(normalized_sequence[i:i + sequence_length])
         y.append(normalized_sequence[i + sequence_length])
     
-    return torch.FloatTensor(X).unsqueeze(-1).to(device), torch.FloatTensor(y).to(device), close_prices, min_val, max_val
+    
+    x_train = torch.FloatTensor(X).unsqueeze(-1).to(device)
+    return x_train, torch.FloatTensor(y).to(device), close_prices, min_val, max_val
+
+def generate_sequence_data_by_index(device, sequence_index=1):
+     # Leer el archivo JSON
+    with open('btc_price_1h.json', 'r') as file:
+        data = json.load(file)
+    
+    sample_size = math.ceil(len(data) * 0.1)
+    
+    # Extraer solo los últimos 10% de datos
+    sample_data = data[-sample_size:]
+    
+    # Extraer solo los precios de cierre (close)
+    close_prices = [float(entry.get('close', 0)) for entry in sample_data if 'close' in entry][-300:]    
+    close_prices_end = [float(entry.get('close', 0)) for entry in sample_data if 'close' in entry][-5:]    
+    
+   
+    
+    
+    return close_prices,close_prices_end
