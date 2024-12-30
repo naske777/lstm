@@ -1,55 +1,48 @@
-import torch
-from models import CNN_LSTM_Model
-from data_generator import generate_sequence_data
-from visualizacion import plot_predictions
-from trainer import train_model
+import json
+import logging
+from datetime import datetime
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = CNN_LSTM_Model().to(device)
+from functions import (
+    get_missing_hours,
+    fetch_and_format_new_data,
+    update_json_data,
+    setup_model,
+)
+from predict import predict_next_values
 
-# Parámetros para el entrenamiento iterativo
-total_segments = 10
-best_loss = float('inf')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Entrenamiento iterativo por segmentos
-for segment in range(total_segments):
-    print(f"\nEntrenando segmento {segment + 1}/{total_segments}")
-    X_train, y_train, full_sequence, min_val, max_val = generate_sequence_data(device, segment, total_segments)
+# Configuraciones
+json_file = 'btc_price_1h.json'
+model_path = 'model.pth'
+
+# 1. Verificar datos faltantes
+missing_hours = get_missing_hours(json_file)
+if missing_hours == 0:
+    logging.info("Datos actualizados. No se requiere entrenamiento.")
     
-    # Cargar el mejor modelo si existe
-    try:
-        model.load_state_dict(torch.load('model.pth'))
-    except:
-        print("No se encontró modelo previo, comenzando desde cero")
-    
-    # Entrenar el modelo con el segmento actual
-    loss, mse, mape = train_model(model, X_train, y_train, min_val, max_val)
-    
-    # Guardar el modelo si mejora
-    if loss < best_loss:
-        best_loss = loss
-        print(f"Nuevo mejor modelo encontrado en segmento {segment + 1}")
-        torch.save(model.state_dict(), 'model.pth')
+else:
+    # 2. Obtener nuevos datos
+    with open(json_file, 'r') as f:
+        last_timestamp = json.load(f)[-1]['timestamp']
 
-# Cargar el mejor modelo para las predicciones
-model.load_state_dict(torch.load('model.pth'))
+    start_time = datetime.fromtimestamp(last_timestamp/1000)
+    end_time = datetime.now()
+    new_data = fetch_and_format_new_data(start_time, end_time)
+    print(len(new_data))
+    if not new_data:
+        logging.error("No se pudieron obtener nuevos datos")
+        exit()
 
-# Obtener último segmento para evaluación final
-X_train, y_train, full_sequence, min_val, max_val = generate_sequence_data(device, total_segments-1, total_segments)
+    #3. Actualizar JSON
+    updated_count = update_json_data(json_file, new_data)
+    logging.info(f"Actualizados {updated_count} registros nuevos")
 
-# Realizar predicciones
-normalized_predictions = []
-denormalized_predictions = []
-with torch.no_grad():
-    for i in range(len(X_train)):
-        seq = X_train[i].unsqueeze(0)
-        pred = model(seq)
-        normalized_pred = pred.cpu().item()
-        normalized_predictions.append(normalized_pred)
-        denormalized_pred = normalized_pred * (max_val - min_val) + min_val
-        denormalized_predictions.append(denormalized_pred)
+# 4. Preparar modelo
+model, device = setup_model(model_path)
 
-# Mostrar resultados finales
-plot_predictions(full_sequence, denormalized_predictions)
-print("Siguiente predicción (desnormalizada):", denormalized_predictions[-1])
-print("Valor real:", full_sequence[len(normalized_predictions) + 4])
+
+# 5. Realizar predicciones
+predictions = predict_next_values()
+
+logging.info(predictions[:-10])

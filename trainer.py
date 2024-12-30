@@ -4,7 +4,7 @@ import torch
 from data_generator import denormalize_data
 from utils import calculate_metrics, combined_loss, EarlyStopping
 
-def train_model(model, X, y, min_val, max_val, X_val=None, y_val=None, epochs=1000, max_grad_norm=1.0):
+def train_model(model, X, y, min_val, max_val, X_val=None, y_val=None, epochs=500, max_grad_norm=1.0):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.004)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.99, patience=100, verbose=True)
     early_stopping = EarlyStopping(patience=100)
@@ -77,6 +77,6 @@ def train_model(model, X, y, min_val, max_val, X_val=None, y_val=None, epochs=10
         best_model_state = {key: val.cpu().clone() for key, val in model.state_dict().items()}
         
     model.load_state_dict(best_model_state)
-    torch.save(model.state_dict(), 'model.pth')
+    # torch.save(model.state_dict(), 'model.pth')
     return (best_loss, train_mse, train_mape) if X_val is None else (best_loss, val_mse, val_mape)
 
